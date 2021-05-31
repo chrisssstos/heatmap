@@ -49,7 +49,7 @@ try:
             if len(distnlist)>=3:
                 color='#ff0000'
                 zord=100
-                size=10000
+                size=30000
             elif len(distnlist)<3 and len(distnlist)>1:
                 color='#ffaa00'
                 zord=50
@@ -57,7 +57,7 @@ try:
             elif len(distnlist)<=1:
                 color='#ffff00'
                 zord=10
-                size=30000
+                size=10000
             distnlist.clear()
             plt.scatter(points_x[g],points_y[g], marker="s",s=size, facecolor=color, zorder=zord)
 

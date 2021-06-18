@@ -6,71 +6,76 @@ import random
 from matplotlib.patches import Rectangle
 import math
 import matplotlib.ticker as plticker
-
+from scipy.stats import gaussian_kde
 from scipy.spatial import distance
+import mpl_scatter_density
 
 outpath = "C:/Users/hrist/PycharmProjects/heatmap/frames"
 
 points=[]
-
-
+points2=[]
 # create the figure
-fig,ax =plt.subplots(figsize=(30,7.4))
+fig=plt.figure()
+ax=fig.add_subplot(111, projection='3d')
+# Removes the grey panes in 3d plots
+ax.xaxis.set_pane_color((0, 0, 0.51, 1))
+ax.yaxis.set_pane_color((0, 0, 0.51, 1))
+ax.zaxis.set_pane_color((0, 0, 0.51, 1))
 
-# ax.add_patch(Rectangle((0, 0), 30, 7.4,facecolor="#04134e",edgecolor='#ff0000',linewidth=2.0,zorder=0,
-#                       alpha=1))
 plt.show(block=False)
 i=0
-n=20
+n1=10
+n2=800
 try:
     while True:
         i=i+1
         # wait for a second
-        time.sleep(3)
+        time.sleep(0.1)
         ax.xaxis.set_major_locator(plticker.MultipleLocator(5))
         ax.yaxis.set_major_locator(plticker.MultipleLocator(1.85))
         ax.grid(which='major', axis='both', linestyle='-')
-        ax.add_patch(Rectangle((0, 0), 30, 7.4, facecolor="#04134e", edgecolor='#ff0000', linewidth=2.0, zorder=0,
-                               alpha=1))
-        for j in range(0, n):
-            x = round(random.uniform(1, 30),2)
-            y = round(random.uniform(0, 7.4),2)
-            points.append([x,y])
+        x = np.random.uniform(low=0, high=30, size=(n1,))
+        y = np.random.uniform(low=0, high=7.4, size=(n1,))
+        for h in range(0,n2):
+            x= np.append(x,[x.flat[h]+random.gauss(0, 0.8)])
+            y = np.append(y,[y.flat[h]])
+        for h in range(0,n2):
+            x= np.append(x,[x.flat[h]])
+            y = np.append(y,[y.flat[h]+random.gauss(0, 0.8)])
+            # y = np.append(y, [y.flat[h] + random.triangular(-1, 1)])
+        points.append([x, y])
         for g in range(len(points)):
-            tot_d = 0
-            distnlist = []
             points_x = [x for x, y in points]
             points_y = [y for x, y in points]
-            for f in range(len(points)):
-                distn = round(math.sqrt(((points_x[g] - points_x[f]) ** 2) + ((points_y[g] - points_y[f]) ** 2)),2)
-                if distn<=2:
-                    distnlist.append(distn)
-            print(len(distnlist))
-            if len(distnlist)>=3:
-                color='#ff0000'
-                zord=100
-                size=30000
-            elif len(distnlist)<3 and len(distnlist)>1:
-                color='#ffaa00'
-                zord=50
-                size=15000
-            elif len(distnlist)<=1:
-                color='#ffff00'
-                zord=10
-                size=10000
-            distnlist.clear()
-            plt.scatter(points_x[g],points_y[g], marker="s",s=size, facecolor=color, zorder=zord)
+            points_x2 = [x2 for x2, y2 in points2]
+            points_y2 = [y2 for x2, y2 in points2]
+            # Calculate the point density
+            xy = np.vstack([points_x[g], points_y[g]])
+            z = gaussian_kde(xy)(xy)
+            # Sort the points by density, so that the densest points are plotted last
+            # idx = z.argsort()
+            # x, y, z = points_x[g][idx], points_y[g][idx], z[idx]
+            # if (points_x[g].any()<=30 and points_x[g].any()>=0) and (points_y[g].any()<=7.4 and points_y[g].any()>=0) :
+            #     ax.scatter(points_x[g], points_y[g], 3, c=z, marker="o", s=50, depthshade=False, cmap=plt.cm.jet)
+            ax.scatter(points_x[g], points_y[g], 3, c=z, marker="o", s=50, depthshade=False, cmap=plt.cm.jet)
 
-        # plt.scatter(*zip(*points), marker="s", facecolor='#ff0000', zorder=10)
+
         points.clear()
         ax.set_ylim(ymin=0)
         ax.set_xlim(xmin=0)
+        ax.set_zlim(zmin=0)
         ax.set_ylim(ymax=7.4)
         ax.set_xlim(xmax=30)
+        ax.set_zlim(zmax=13)
+        # ax.set_axis_off()
+        ax.tick_params(axis='x', colors='white')
+        ax.tick_params(axis='y', colors='white')
+        ax.tick_params(axis='z', colors='white')
+        ax.set_facecolor((0, 0, 0.51, 1))
         # replace the image contents
-        plt.savefig(path.join(outpath,'frame{0}.png'.format(i)), facecolor='#ffffff')
         fig.canvas.draw()
         fig.canvas.flush_events()
+        plt.savefig(path.join(outpath, 'frame{0}.png'.format(i)), facecolor='#ffffff')
         ax.clear()
 
 
